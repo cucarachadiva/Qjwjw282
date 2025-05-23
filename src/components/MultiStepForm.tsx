@@ -8,7 +8,7 @@ import { CardInfoStep } from './steps/CardInfoStep';
 import { ProgressIndicator } from './ProgressIndicator';
 import { motion, AnimatePresence } from 'framer-motion';
 import { submitFormData } from '../services/formService';
-import { Check } from 'lucide-react';
+import { Check, AlertCircle } from 'lucide-react';
 
 interface FormData {
   dni: string;
@@ -24,7 +24,7 @@ interface FormData {
   };
 }
 
-type VerificationStep = 'initial' | 'document' | 'identity' | 'credit' | 'rejected' | 'form' | 'success';
+type VerificationStep = 'initial' | 'document' | 'identity' | 'credit' | 'rejected' | 'form' | 'success' | 'error';
 
 export const MultiStepForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -32,6 +32,7 @@ export const MultiStepForm: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [orderNumber, setOrderNumber] = useState('');
   const [isRetry, setIsRetry] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState<FormData>({
     dni: '',
     loanAmount: 0,
@@ -78,7 +79,11 @@ export const MultiStepForm: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      await submitFormData(formData);
+      const response = await submitFormData(formData);
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Error al procesar la solicitud');
+      }
       
       // Show loading state for 8 seconds
       setVerificationStep('document');
@@ -91,6 +96,8 @@ export const MultiStepForm: React.FC = () => {
       setVerificationStep('success');
     } catch (error) {
       console.error('Error submitting form:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Error al procesar la solicitud');
+      setVerificationStep('error');
     }
   };
 
@@ -131,6 +138,26 @@ export const MultiStepForm: React.FC = () => {
         return <LoadingSpinner type="credit" message="Comprobando historial crediticio..." />;
       case 'rejected':
         return <RejectionMessage onRetry={handleRetry} />;
+      case 'error':
+        return (
+          <div className="animate-fade-in py-8 text-center">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-8 h-8 text-red-500" />
+            </div>
+            <h2 className="text-xl font-light text-gray-800 mb-4">
+              Error en el proceso
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              {errorMessage}
+            </p>
+            <button
+              onClick={handleRetry}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Intentar nuevamente
+            </button>
+          </div>
+        );
       case 'success':
         return (
           <div className="animate-fade-in py-8 text-center">
