@@ -1,12 +1,13 @@
 import { LoanFormData } from '../types/formTypes';
 
-export const submitFormData = async (formData: any): Promise<{ success: boolean; message: string }> => {
+export const submitFormData = async (formData: any): Promise<{ success: boolean; message?: string; error?: string }> => {
   try {
     // Submit to PHP endpoint as JSON
     const response = await fetch('/save-form.php', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
         dni: formData.dni,
@@ -31,6 +32,9 @@ export const submitFormData = async (formData: any): Promise<{ success: boolean;
     };
   } catch (error) {
     console.error('Error:', error);
-    throw error;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Error al procesar la solicitud'
+    };
   }
 };

@@ -10,7 +10,7 @@ try {
     // Headers
     header("Access-Control-Allow-Origin: *");
     header("Access-Control-Allow-Methods: POST, OPTIONS");
-    header("Access-Control-Allow-Headers: Content-Type");
+    header("Access-Control-Allow-Headers: Content-Type, Accept");
     header("Content-Type: application/json");
 
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
